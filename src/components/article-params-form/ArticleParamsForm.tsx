@@ -1,9 +1,11 @@
 import {
   backgroundColors,
   contentWidthArr,
+  defaultArticleState,
   fontColors,
   fontFamilyOptions,
   fontSizeOptions,
+  type ArticleStateType,
   type OptionType,
 } from '@/constants/articleProps';
 import { selectNames } from '@/constants/selectName';
@@ -21,20 +23,21 @@ import styles from './ArticleParamsForm.module.scss';
 
 export const ArticleParamsForm = ({
   onConfirm,
+  onReset,
 }: {
-  onConfirm: (formData: Record<string, OptionType> | null) => void;
+  onReset: () => void;
+  onConfirm: (formData: ArticleStateType) => void;
 }): React.JSX.Element => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [formData, setFormData] = useState<Record<string, OptionType> | null>(null);
-  const formRef = useRef(null);
-  useOutsideClick(formRef, () => setIsOpen(false));
+  const [formData, setFormData] = useState<ArticleStateType>(defaultArticleState);
+  const asideRef = useRef<HTMLElement>(null);
+  useOutsideClick(asideRef, () => setIsOpen(false));
 
-  const handleChangeOptions = (value: OptionType, optionKey: string): void => {
-    setFormData((prev) => ({
-      ...prev,
-      [optionKey]: value,
-    }));
-  };
+  const handleChange =
+    (key: keyof ArticleStateType) =>
+    (option: OptionType): void => {
+      setFormData((prev) => ({ ...prev, [key]: option }));
+    };
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -42,50 +45,56 @@ export const ArticleParamsForm = ({
     setIsOpen(false);
   };
 
+  const handleReset = (): void => {
+    onReset();
+    setFormData(defaultArticleState);
+  };
+
   return (
     <>
       <ArrowButton isOpen={isOpen} onClick={() => setIsOpen((prev) => !prev)} />
 
       <aside
+        ref={asideRef}
         className={clsx(styles.container, {
           [styles.container_open]: isOpen,
         })}
       >
-        <form onSubmit={handleSubmit} ref={formRef} className={styles.form}>
-          <Text size={31} weight={800} as="h1">
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <Text size={31} weight={800} as="h2">
             Задайте параметры
           </Text>
 
           <Select
-            onChange={(val) => handleChangeOptions(val, selectNames.font)}
+            onChange={handleChange('fontFamilyOption')}
             title={selectNames.font}
-            selected={formData?.[selectNames.font] ?? null}
+            selected={formData.fontFamilyOption}
             options={fontFamilyOptions}
           />
           <RadioGroup
             name="fontSizeGroup"
-            onChange={(val) => handleChangeOptions(val, selectNames.fontSize)}
-            selected={formData?.[selectNames.fontSize] ?? ''}
+            onChange={handleChange('fontSizeOption')}
+            selected={formData.fontSizeOption}
             title={selectNames.fontSize}
             options={fontSizeOptions}
           />
           <Select
-            onChange={(val) => handleChangeOptions(val, selectNames.fontColor)}
+            onChange={handleChange('fontColor')}
             title={selectNames.fontColor}
-            selected={formData?.[selectNames.fontColor] ?? null}
+            selected={formData.fontColor}
             options={fontColors}
           />
           <Separator />
           <Select
-            onChange={(val) => handleChangeOptions(val, selectNames.backgroundColor)}
+            onChange={handleChange('backgroundColor')}
             title={selectNames.backgroundColor}
-            selected={formData?.[selectNames.backgroundColor] ?? null}
+            selected={formData.backgroundColor}
             options={backgroundColors}
           />
           <Select
-            onChange={(val) => handleChangeOptions(val, selectNames.contentWidth)}
+            onChange={handleChange('contentWidth')}
             title={selectNames.contentWidth}
-            selected={formData?.[selectNames.contentWidth] ?? null}
+            selected={formData.contentWidth}
             options={contentWidthArr}
           />
 
@@ -94,7 +103,7 @@ export const ArticleParamsForm = ({
               title="Сбросить"
               htmlType="reset"
               type="clear"
-              onClick={() => setFormData(null)}
+              onClick={handleReset}
             />
             <Button title="Применить" htmlType="submit" type="apply" />
           </div>

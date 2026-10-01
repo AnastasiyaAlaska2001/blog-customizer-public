@@ -1,5 +1,4 @@
-import { defaultArticleState, type OptionType } from '@/constants/articleProps.ts';
-import { selectNames } from '@/constants/selectName';
+import { defaultArticleState, type ArticleStateType } from '@/constants/articleProps.ts';
 import { clsx } from 'clsx';
 import { useState, type CSSProperties } from 'react';
 
@@ -10,33 +9,29 @@ import { Article } from '../article/Article';
 import styles from './app.module.scss';
 
 export const App = (): React.JSX.Element => {
-  const [confirmedData, setConfirmed] = useState<Record<string, OptionType> | null>(
-    null
-  );
+  const [confirmedData, setConfirmed] = useState<ArticleStateType>(defaultArticleState);
 
-  const handleConfirm = (formData: Record<string, OptionType> | null): void => {
+  const handleConfirm = (formData: ArticleStateType): void => {
     setConfirmed(formData);
   };
 
-  const getStyles = (
-    confirmedData: Record<string, OptionType> | null
-  ): CSSProperties => {
-    const getValue = (key: string): string =>
-      confirmedData?.[key]?.value ??
-      defaultArticleState[key as keyof typeof defaultArticleState]?.value;
-
-    return {
-      '--font-family': getValue(selectNames.font),
-      '--font-size': getValue(selectNames.fontSize),
-      '--font-color': getValue(selectNames.fontColor),
-      '--container-width': getValue(selectNames.contentWidth),
-      '--bg-color': getValue(selectNames.backgroundColor),
-    } as React.CSSProperties;
-  };
-
   return (
-    <main className={clsx(styles.main)} style={getStyles(confirmedData)}>
-      <ArticleParamsForm onConfirm={handleConfirm} />
+    <main
+      className={clsx(styles.main)}
+      style={
+        {
+          '--font-family': confirmedData.fontFamilyOption.value,
+          '--font-size': confirmedData.fontSizeOption.value,
+          '--font-color': confirmedData.fontColor.value,
+          '--container-width': confirmedData.contentWidth.value,
+          '--bg-color': confirmedData.backgroundColor.value,
+        } as CSSProperties
+      }
+    >
+      <ArticleParamsForm
+        onReset={() => setConfirmed(defaultArticleState)}
+        onConfirm={handleConfirm}
+      />
       <Article />
     </main>
   );
